@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dell AI Digital Twin</title>
+    <style>
+        /* ---------- RESET & BASE ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F5F7FA;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ---------- HEADER ---------- */
+        .header {
+            background: #0A1628;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+            border-bottom: 2px solid #0078D4;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-left .brand {
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .header-left .brand span {
+            color: #0078D4;
+        }
+        .header-left .subtitle {
+            color: #A0AEC0;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-center .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #A0AEC0;
+            font-size: 13px;
+        }
+        .header-center .status .dot {
+            width: 10px;
+            height: 10px;
+            background: #48BB78;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .header-center .status .online {
+            color: #48BB78;
+            font-weight: 600;
+        }
+        .header-center .data-count {
+            color: #A0AEC0;
+            font-size: 13px;
+            border-left: 1px solid #2D3748;
+            padding-left: 12px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-right .toggle-label {
+            color: #A0AEC0;
+            font-size: 13px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #4A5568;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+        .toggle-switch.active {
+            background: #0078D4;
+        }
+        .toggle-switch .knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active .knob {
+            transform: translateX(20px);
+        }
+        .header-right .profile-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0078D4;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* ---------- BODY (SIDEBAR + CHAT) ---------- */
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        .sidebar {
+            width: 280px;
+            background: #FFFFFF;
+            border-right: 1px solid #E2E8F0;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .sidebar .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .sidebar .session-id {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1A202C;
+            font-family: monospace;
+            background: #F7FAFC;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+        .sidebar .session-time {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+        .sidebar .insight-card {
+            background: #F7FAFC;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        .sidebar .insight-card .label {
+            font-size: 12px;
+            color: #4A5568;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sidebar .insight-card .bar {
+            height: 6px;
+            background: #E2E8F0;
+            border-radius: 3px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        .sidebar .insight-card .bar .fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        .sidebar .insight-card .bar .fill.cpu { background: #0078D4; width: 42%; }
+        .sidebar .insight-card .bar .fill.temp { background: #ED8936; width: 56%; }
+        .sidebar .insight-card .bar .fill.battery { background: #48BB78; width: 87%; }
+
+        .sidebar .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar .quick-actions button {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 14px;
+            color: #1A202C;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .sidebar .quick-actions button:hover {
+            background: #F7FAFC;
+            border-color: #0078D4;
+        }
+
+        /* ---------- MAIN CHAT AREA ---------- */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #F5F7FA;
+            overflow: hidden;
+        }
+
+        .chat-welcome {
+            padding: 24px 32px 8px 32px;
+            flex-shrink: 0;
+        }
+        .chat-welcome h2 {
+            font-size: 22px;
+            color: #1A202C;
+            font-weight: 600;
+        }
+        .chat-welcome p {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .chat-feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 32px 16px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ---------- CHAT BUBBLES ---------- */
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #E2E8F0;
+        }
+        .message.assistant {
+            align-self: flex-start;
+            background: #E8F0FE;
+            border-left: 4px solid #0078D4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .message .sender {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4A5568;
+            margin-bottom: 4px;
+        }
+        .message .content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #1A202C;
+            white-space: pre-wrap;
+        }
+        .message .content strong {
+            color: #0A1628;
+        }
+
+        /* Evidence Box */
+        .evidence-box {
+            margin-top: 8px;
+            background: #EDF2F7;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #4A5568;
+            border-left: 3px solid #0078D4;
+            display: none;
+        }
+        .evidence-box.open {
+            display: block;
+        }
+        .evidence-toggle {
+            background: none;
+            border: none;
+            color: #0078D4;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 0;
+            font-weight: 500;
+        }
+        .evidence-toggle:hover {
+            text-decoration: underline;
+        }
+
+        /* Confidence badge */
+        .confidence-badge {
+            display: inline-block;
+            background: #0078D4;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-top: 6px;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            align-self: flex-start;
+            background: #E8F0FE;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-left: 4px solid #0078D4;
+            display: none;
+            font-size: 14px;
+            color: #4A5568;
+        }
+        .typing-indicator .dots::after {
+            content: '...';
+            animation: dots 1.2s steps(4) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- INPUT BAR ---------- */
+        .input-bar {
+            background: #FFFFFF;
+            border-top: 1px solid #E2E8F0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+        }
+        .input-bar .mic-btn {
+            background: #0078D4;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            color: #FFFFFF;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-bar .mic-btn:hover {
+            background: #005A9E;
+        }
+        .input-bar .mic-btn.listening {
+            background: #E53E3E;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .input-bar .sim-toggle {
+            background: #EDF2F7;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4A5568;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .input-bar .sim-toggle.active {
+            background: #0078D4;
+            color: #FFFFFF;
+            border-color: #0078D4;
+        }
+
+        .input-bar input[type="text"] {
+            flex: 1;
+            border: none;
+            padding: 10px 0;
+            font-size: 15px;
+            outline: none;
+            background: transparent;
+            color: #1A202C;
+        }
+        .input-bar input[type="text"]::placeholder {
+            color: #A0AEC0;
+        }
+        .input-bar .send-btn {
+            background: #0078D4;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .input-bar .send-btn:hover {
+            background: #005A9E;
+        }
+
+        /* ---------- FLOATING AVATAR ---------- */
+        /* ---------- FLOATING AVATAR ---------- */
+.avatar-container {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #0A1628;
+    border: 3px solid #0078D4;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,120,212,0.3);
+    z-index: 999;
+    transition: opacity 0.4s;
+    flex-direction: column;
+}
+.avatar-container.visible {
+    display: flex;
+}
+.avatar-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #2D3748;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+}
+.avatar-img .mouth {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 4px;
+    background: #E2E8F0;
+    border-radius: 2px;
+    transition: height 0.05s;
+}
+.avatar-img .mouth.speaking {
+    height: 12px;
+}
+.status-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #48BB78;
+    animation: ringPulse 2s infinite;
+}
+@keyframes ringPulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 0.3; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+        /* ---------- TOAST ---------- */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1A202C;
+            color: #FFFFFF;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+            z-index: 2000;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.error {
+            background: #E53E3E;
+        }
+        .toast.success {
+            background: #48BB78;
+        }
+
+        /* ---------- SCROLLBAR ---------- */
+        .chat-feed::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-feed::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-feed::-webkit-scrollbar-thumb {
+            background: #CBD5E0;
+            border-radius: 3px;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .header-center {
+                display: none;
+            }
+            .header-right .toggle-label {
+                display: none;
+            }
+            .chat-feed {
+                padding: 12px 16px;
+            }
+            .chat-welcome {
+                padding: 16px 16px 4px 16px;
+            }
+            .input-bar {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== HEADER ========== -->
+    <header class="header">
+        <div class="header-left">
+            <span class="brand">💻 Dell <span>AI Twin</span></span>
+            <span class="subtitle">Laptop Telemetry Intelligence</span>
+        </div>
+        <div class="header-center">
+            <span class="status">
+                <span class="dot"></span>
+                <span class="online">Online</span>
+            </span>
+            <span class="data-count">📊 2,000 Telemetry Records</span>
+        </div>
+        <div class="header-right">
+            <span class="toggle-label">Avatar Mode</span>
+            <div class="toggle-switch" id="avatarToggle">
+                <div class="knob"></div>
+            </div>
+            <div class="profile-icon">DE</div>
+        </div>
+    </header>
+
+    <!-- ========== APP BODY ========== -->
+    <div class="app-body">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar">
+            <div>
+                <div class="section-title">Session</div>
+                <div class="session-id">#A12B-7C4D</div>
+                <div class="session-time">Started: <span id="sessionTime">10:30 AM</span></div>
+            </div>
+
+            <div>
+                <div class="section-title">Quick Insights</div>
+                <div class="insight-card">
+                    <div class="label"><span>🖥️ Avg CPU</span><span>42%</span></div>
+                    <div class="bar"><div class="fill cpu"></div></div>
+                </div>
+                <div class="insight-card">
+                    <div class="label"><span>🌡️ Avg Temp</span><span>56°C</span></div>
+                    <div class="bar"><div class="fill temp"></div></div>
+                </div>
+                <div class="insight-card">
+                    <div class="label"><span>🔋 Battery</span><span>87%</span></div>
+                    <div class="bar"><div class="fill battery"></div></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Quick Actions</div>
+                <div class="quick-actions">
+                    <button id="newSimBtn">📊 New Simulation</button>
+                    <button id="exportBtn">📋 Export Report</button>
+                    <button id="resetBtn">🔄 Reset Chat</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== CHAT AREA ===== -->
+        <main class="chat-area">
+            <div class="chat-welcome">
+                <h2>👋 Welcome! Ask me anything about your laptop's health.</h2>
+                <p>I can diagnose issues, predict failures, and simulate what-if scenarios.</p>
+            </div>
+
+            <div class="chat-feed" id="chatFeed">
+                <!-- Messages will be injected here by JavaScript -->
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <span class="dots">Thinking</span>
+            </div>
+
+            <!-- ===== INPUT BAR ===== -->
+            <div class="input-bar">
+                <button class="mic-btn" id="micBtn" title="Voice input">🎤</button>
+                <button class="sim-toggle" id="simToggle">📊 Simulate</button>
+                <input type="text" id="userInput" placeholder="Type your question about the laptop..." />
+                <button class="send-btn" id="sendBtn">➡️ Send</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== FLOATING AVATAR ===== -->
+    <!-- ===== FLOATING AVATAR ===== -->
+<div class="avatar-container" id="avatarContainer">
+    <div class="status-ring"></div>
+    <div class="avatar-img" id="avatarFace">
+        🤖
+        <!-- Lip‑sync SVG mouth -->
+        <svg id="avatarMouth" viewBox="0 0 40 30" width="30" height="20" style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%);">
+            <!-- Upper lip (static) -->
+            <path d="M5,10 Q15,5 20,10 Q25,5 35,10" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Lower lip (animated) -->
+            <path id="lowerLip" d="M5,12 Q15,8 20,12 Q25,8 35,12" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Inner mouth (changes color when open) -->
+            <ellipse id="mouthOpen" cx="20" cy="14" rx="12" ry="1" fill="#E53E3E" opacity="0"/>
+        </svg>
+    </div>
+</div>
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ----- DOM refs -----
+            const chatFeed = document.getElementById('chatFeed');
+            const userInput = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const micBtn = document.getElementById('micBtn');
+            const simToggle = document.getElementById('simToggle');
+            const resetBtn = document.getElementById('resetBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const newSimBtn = document.getElementById('newSimBtn');
+            const avatarToggle = document.getElementById('avatarToggle');
+            const avatarContainer = document.getElementById('avatarContainer');
+            const avatarMouth = document.getElementById('avatarMouth');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const toast = document.getElementById('toast');
+
+            // ----- State -----
+            let isAvatarMode = false;
+            let isSimulateMode = false;
+            let isListening = false;
+            let recognition = null;
+            let isSpeaking = false;
+            let conversationHistory = [];
+
+            // ----- Session time -----
+            document.getElementById('sessionTime').textContent = new Date().toLocaleTimeString();
+
+            // ----- Toast helper -----
+            function showToast(msg, type = 'success') {
+                toast.textContent = msg;
+                toast.className = 'toast show ' + type;
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            // ----- Scroll chat to bottom -----
+            function scrollChat() {
+                chatFeed.scrollTop = chatFeed.scrollHeight;
+            }
+
+            // ----- Add message to feed -----
+            function addMessage(role, content, evidence = null, confidence = null) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message ' + role;
+
+                let sender = role === 'user' ? 'You' : 'AI Assistant';
+                let html = `<div class="sender">${sender}</div>`;
+                html += `<div class="content">${content}</div>`;
+
+                // Confidence
+                if (confidence !== null && role === 'assistant') {
+                    html += `<div class="confidence-badge">✅ Confidence: ${confidence}%</div>`;
+                }
+
+                // Evidence (for assistant)
+                if (evidence && role === 'assistant') {
+                    html += `
+                        <button class="evidence-toggle" onclick="toggleEvidence(this)">🔍 Evidence</button>
+                        <div class="evidence-box">${evidence}</div>
+                    `;
+                }
+
+                msgDiv.innerHTML = html;
+                chatFeed.appendChild(msgDiv);
+                scrollChat();
+                return msgDiv;
+            }
+
+            // ----- Toggle evidence -----
+            window.toggleEvidence = function(btn) {
+                const box = btn.nextElementSibling;
+                if (box.classList.contains('open')) {
+                    box.classList.remove('open');
+                    btn.textContent = '🔍 Evidence';
+                } else {
+                    box.classList.add('open');
+                    btn.textContent = '🔽 Hide Evidence';
+                }
+            };
+
+            // ----- Show typing indicator -----
+            function showTyping() {
+                typingIndicator.style.display = 'block';
+                scrollChat();
+            }
+
+            function hideTyping() {
+                typingIndicator.style.display = 'none';
+            }
+
+            // ----- Call backend API -----
+            async function sendToBackend(message) {
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message }),
+                    });
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Server error (${response.status}): ${errText}`);
+                    }
+
+                    const data = await response.json();
+                    return data;
+                } catch (err) {
+                    console.error('API Error:', err);
+                    return {
+                        success: false,
+                        error: err.message,
+                        diagnosis: 'Error communicating with backend.',
+                        recommendation: 'Please check that the server is running.',
+                        confidence: 0,
+                        evidence: '',
+                    };
+                }
+            }
+
+            // ----- Handle sending a message -----
+            async function handleSend() {
+                const text = userInput.value.trim();
+                if (!text) return;
+
+                // Clear input
+                userInput.value = '';
+
+                // Add user message
+                addMessage('user', text);
+                conversationHistory.push({ role: 'user', content: text });
+
+                // Show typing indicator
+                showTyping();
+
+                // Send to backend
+                const response = await sendToBackend(text);
+
+                hideTyping();
+
+                // Build assistant content
+                let assistantContent = '';
+                if (response.success === false) {
+                    assistantContent = `⚠️ Error: ${response.error || 'Unknown error'}`;
+                } else {
+                    const diag = response.diagnosis || 'No diagnosis provided.';
+                    const rec = response.recommendation || 'No recommendation provided.';
+                    assistantContent = `**Diagnosis:** ${diag}\n\n**Recommendation:** ${rec}`;
+                }
+
+                const evidence = response.evidence || '';
+                const confidence = response.confidence || 0;
+
+                // Add assistant message
+                addMessage('assistant', assistantContent, evidence, confidence);
+                conversationHistory.push({ role: 'assistant', content: assistantContent });
+
+                // ---- Voice Output (Avatar Mode) ----
+                if (isAvatarMode && response.success !== false) {
+                    const textToSpeak = response.diagnosis + '. ' + response.recommendation;
+                    speakText(textToSpeak);
+                }
+
+                // Update sidebar insights with mock data (just for demo)
+                updateInsights();
+
+                // If simulation mode was active, show a simulation note
+                if (isSimulateMode && response.simulation) {
+                    // The simulation is already included in the recommendation via the prompt
+                    // but we can show a toast
+                    showToast('📊 Simulation result included in reply', 'success');
+                }
+            }
+
+            // ----- Speech Synthesis (Voice Output) -----
+            // ----- Speech Synthesis (Voice Output) with Lip-Sync -----
+function speakText(text) {
+    if (!window.speechSynthesis) {
+        console.warn('SpeechSynthesis not supported');
+        return;
+    }
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith('en')) || null;
+
+    // ---- Lip-Sync Variables ----
+    let lipInterval = null;
+    let isSpeaking = false;
+
+    // ---- Get DOM elements for lip-sync ----
+    const lowerLip = document.getElementById('lowerLip');
+    const mouthOpen = document.getElementById('mouthOpen');
+
+    // ---- Lip movement function ----
+    function animateLip() {
+        if (!isSpeaking) return;
+        // Random mouth opening (5-15px) to simulate continuous movement
+        const openAmount = 5 + Math.random() * 10;
+        lowerLip.setAttribute('d', `M5,12 Q15,${8 + openAmount} 20,${12 + openAmount} Q25,${8 + openAmount} 35,12`);
+        mouthOpen.setAttribute('ry', openAmount / 2);
+        mouthOpen.setAttribute('opacity', '1');
+        // Schedule next lip movement after 50-150ms
+        clearTimeout(lipInterval);
+        lipInterval = setTimeout(animateLip, 50 + Math.random() * 100);
+    }
+
+    utterance.onstart = function() {
+        isSpeaking = true;
+        // Show the avatar if not visible
+        if (!avatarContainer.classList.contains('visible')) {
+            avatarContainer.classList.add('visible');
+        }
+        // Start lip animation
+        animateLip();
+    };
+
+    utterance.onboundary = function(event) {
+        // This triggers on word boundaries – we can use it to create more natural movement
+        if (isSpeaking) {
+            // Slight extra movement on word boundaries
+            const openAmount = 8 + Math.random() * 8;
+            lowerLip.setAttribute('d', `M5,12 Q15,${8 + openAmount} 20,${12 + openAmount} Q25,${8 + openAmount} 35,12`);
+            mouthOpen.setAttribute('ry', openAmount / 2);
+        }
+    };
+
+    utterance.onend = function() {
+        isSpeaking = false;
+        clearTimeout(lipInterval);
+        // Close mouth
+        lowerLip.setAttribute('d', 'M5,12 Q15,8 20,12 Q25,8 35,12');
+        mouthOpen.setAttribute('ry', '1');
+        mouthOpen.setAttribute('opacity', '0');
+    };
+
+    utterance.onerror = function() {
+        isSpeaking = false;
+        clearTimeout(lipInterval);
+        lowerLip.setAttribute('d', 'M5,12 Q15,8 20,12 Q25,8 35,12');
+        mouthOpen.setAttribute('ry', '1');
+        mouthOpen.setAttribute('opacity', '0');
+    };
+
+    window.speechSynthesis.speak(utterance);
+}
+
+            // ----- Speech Recognition (Voice Input) -----
+            function initSpeechRecognition() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    console.warn('SpeechRecognition not supported');
+                    micBtn.style.opacity = '0.5';
+                    return;
+                }
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onstart = function() {
+                    isListening = true;
+                    micBtn.classList.add('listening');
+                    showToast('🎤 Listening... Speak now', 'success');
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value = transcript;
+                    showToast('✅ Speech recognized: "' + transcript + '"', 'success');
+                    // Auto-send after a short delay
+                    setTimeout(() => {
+                        handleSend();
+                    }, 300);
+                };
+
+                recognition.onerror = function(event) {
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                    showToast('⚠️ Voice error: ' + event.error, 'error');
+                };
+
+                recognition.onend = function() {
+                    isListening = false;
+                    micBtn.classList.remove('listening');
+                };
+            }
+
+            // ----- Mic button click -----
+            function toggleMic() {
+                if (!recognition) {
+                    showToast('⚠️ Voice input not supported in this browser', 'error');
+                    return;
+                }
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        // Sometimes recognition is already started
+                        console.warn(e);
+                    }
+                }
+            }
+
+            // ----- Avatar toggle -----
+            function toggleAvatar() {
+                isAvatarMode = !isAvatarMode;
+                avatarToggle.classList.toggle('active', isAvatarMode);
+                if (isAvatarMode) {
+                    avatarContainer.classList.add('visible');
+                    showToast('🧑‍💻 Avatar Mode ON', 'success');
+                } else {
+                    avatarContainer.classList.remove('visible');
+                    // Cancel any speaking
+                    if (window.speechSynthesis) {
+                        window.speechSynthesis.cancel();
+                    }
+                    avatarMouth.classList.remove('speaking');
+                    isSpeaking = false;
+                    showToast('🧑‍💻 Avatar Mode OFF', 'success');
+                }
+            }
+
+            // ----- Simulate toggle -----
+            function toggleSimulate() {
+                isSimulateMode = !isSimulateMode;
+                simToggle.classList.toggle('active', isSimulateMode);
+                if (isSimulateMode) {
+                    showToast('📊 Simulation mode ON – ask "What if..."', 'success');
+                } else {
+                    showToast('📊 Simulation mode OFF', 'success');
+                }
+            }
+
+            // ----- Reset chat -----
+            function resetChat() {
+                chatFeed.innerHTML = '';
+                conversationHistory = [];
+                // Re-add welcome message?
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.style.textAlign = 'center';
+                welcomeDiv.style.color = '#718096';
+                welcomeDiv.style.fontSize = '14px';
+                welcomeDiv.style.padding = '20px 0';
+                welcomeDiv.textContent = '✨ Chat cleared. Start a new conversation!';
+                chatFeed.appendChild(welcomeDiv);
+                showToast('🔄 Chat reset', 'success');
+            }
+
+            // ----- Export report -----
+            function exportReport() {
+                let text = 'DELL AI DIGITAL TWIN - CHAT REPORT\n';
+                text += '====================================\n';
+                text += 'Session: #A12B-7C4D\n';
+                text += 'Date: ' + new Date().toLocaleString() + '\n\n';
+                const messages = chatFeed.querySelectorAll('.message');
+                messages.forEach((msg, index) => {
+                    const sender = msg.querySelector('.sender')?.textContent || 'Message';
+                    const content = msg.querySelector('.content')?.textContent || '';
+                    text += `[${index+1}] ${sender}:\n${content}\n\n`;
+                });
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dell_twin_report.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('📋 Report exported!', 'success');
+            }
+
+            // ----- Update insights (mock) -----
+            function updateInsights() {
+                // Just for demo – randomizes values slightly to show dynamism
+                const cpu = Math.floor(30 + Math.random() * 40);
+                const temp = Math.floor(45 + Math.random() * 25);
+                const bat = Math.floor(60 + Math.random() * 35);
+                document.querySelector('.insight-card .label span:last-child').textContent = cpu + '%';
+                document.querySelector('.fill.cpu').style.width = cpu + '%';
+                document.querySelector('.insight-card:nth-child(2) .label span:last-child').textContent = temp + '°C';
+                document.querySelector('.fill.temp').style.width = temp + '%';
+                document.querySelector('.insight-card:nth-child(3) .label span:last-child').textContent = bat + '%';
+                document.querySelector('.fill.battery').style.width = bat + '%';
+            }
+
+            // ----- New Simulation (quick action) -----
+            function newSimulation() {
+                // Activate simulate mode and focus input
+                if (!isSimulateMode) {
+                    toggleSimulate();
+                }
+                userInput.value = 'What if CPU increases to 90%?';
+                userInput.focus();
+                showToast('📊 Try asking a "what if" question!', 'success');
+            }
+
+            // ----- Enter key handler -----
+            function onEnter(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            }
+
+            // ----- Init -----
+            function init() {
+                // Event listeners
+                sendBtn.addEventListener('click', handleSend);
+                userInput.addEventListener('keydown', onEnter);
+                micBtn.addEventListener('click', toggleMic);
+                simToggle.addEventListener('click', toggleSimulate);
+                resetBtn.addEventListener('click', resetChat);
+                exportBtn.addEventListener('click', exportReport);
+                newSimBtn.addEventListener('click', newSimulation);
+                avatarToggle.addEventListener('click', toggleAvatar);
+
+                // Init speech recognition
+                initSpeechRecognition();
+
+                // Add a welcome message from assistant
+                const welcomeMsg = 'Hello! I am your Dell AI Digital Twin. I can analyze laptop telemetry, diagnose issues, predict failures, and simulate what-if scenarios. How can I help you today?';
+                addMessage('assistant', welcomeMsg, null, 100);
+
+                // Show a toast
+                showToast('🚀 Dell AI Twin ready', 'success');
+
+                // Update insights after a few seconds
+                setTimeout(updateInsights, 1000);
+            }
+
+            // Run when DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
